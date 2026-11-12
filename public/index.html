@@ -276,6 +276,24 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .role.adm{background:#FFF4DE;color:#B76E00}.role.acc{background:#DDF7F3;color:#0B8A7D}.role.no{background:#EEF1F5;color:#5B6779}
 .refresh{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);border:0;color:#fff;border-radius:12px;padding:7px 10px;font-size:12.5px;font-weight:700}
 .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.dpbtn{text-align:start;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:50px;font-weight:700}
+.dpbtn:before{content:"📅";font-size:16px}
+.dpbtn:disabled{background:#F1F0F8;cursor:not-allowed;opacity:.8}
+.dp{position:fixed;inset:0;z-index:65;background:rgba(22,18,50,.5);display:none;align-items:center;justify-content:center;padding:14px}
+.dp.open{display:flex}
+.dp-b{background:#fff;border-radius:28px;padding:20px;width:min(440px,100%);animation:pop .2s;box-shadow:0 20px 50px rgba(30,20,90,.3)}
+.dp-h{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.dp-h .nv{width:48px;height:48px;border-radius:15px;border:0;background:#F1EEFF;color:var(--pri-d);font-size:22px;font-weight:800;flex:none}
+.dp-h select{flex:1;min-width:0;font-size:17px;font-weight:800;padding:11px 12px;padding-left:32px;text-align:center}
+.dp-g{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dp-g .wd{text-align:center;font-size:12.5px;font-weight:800;color:#A3A1BC;padding:4px 0}
+.dp-g button{aspect-ratio:1;border:0;border-radius:14px;background:#F6F5FC;font-size:18px;font-weight:800;color:var(--ink);display:grid;place-items:center}
+.dp-g button:hover{background:#EFEAFF}
+.dp-g button.td{box-shadow:inset 0 0 0 2px var(--pri);color:var(--pri-d)}
+.dp-g button.sel{background:linear-gradient(135deg,#6C5CE7,#EC4899);color:#fff;box-shadow:0 6px 14px rgba(108,92,231,.35)}
+.dp-g button.fri{color:#C81E45}
+.dp-sel{text-align:center;font-weight:800;font-size:15px;color:var(--pri-d);margin:14px 0 4px;min-height:22px}
+.dp-f{display:flex;gap:8px;margin-top:12px}.dp-f .btn{flex:1;padding:12px 8px}
 select.inp{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236E6B8A' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center;padding-left:36px}
 .side{display:none}
 .cols>div{min-width:0}
@@ -308,9 +326,13 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:url("data:im
   .quick{grid-template-columns:repeat(3,1fr);gap:16px}
   .qbtn{flex-direction:row;justify-content:center;padding:18px;font-size:16px}
   .stats{grid-template-columns:repeat(4,1fr);gap:16px}
-  .home-top{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:stretch}
-  .home-top .quick{grid-template-columns:1fr;margin:0}
-  .home-top .qbtn{justify-content:flex-start}
+  .home-top .quick{display:none}
+  .hero{display:flex;align-items:center;gap:28px;padding:26px 28px}
+  .hero-main{flex:1.2}
+  .hero .mine{flex:1;margin:0}
+  .hero .mine div{padding:16px}
+  .hero .mine b{font-size:24px}
+  .newbtn{margin-top:22px;background:linear-gradient(135deg,#F59E0B,#EC4899);color:#fff;box-shadow:0 8px 18px rgba(236,72,153,.25);width:100%}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
   #loanList,.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px}
   #loanList .lcard,.grid2 .lcard,.grid2 .pcard{margin:0}
@@ -329,6 +351,7 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:url("data:im
 <div id="root"></div>
 <div class="sheet-wrap" id="sheetWrap"><div class="sheet" id="sheet"></div></div>
 <div class="dlg" id="dlg"><div class="dlg-b" id="dlgB"></div></div>
+<div class="dp" id="dp"><div class="dp-b" id="dpB"></div></div>
 <div class="toast" id="toast"></div>
 <datalist id="peopleList"></datalist>
 
@@ -387,14 +410,14 @@ const ST={
   cancelled:{t:'ملغاة',c:'gray'}
 };
 const RST={pending:{t:'بانتظار تأكيد الاستلام',c:'amber'},confirmed:{t:'مؤكد',c:'green'},rejected:{t:'مرفوض',c:'rose'}};
-const LOGT={created_request:['تقديم طلب سلفة','📝'],created_grant:['تسجيل سلفة','💸'],approved:['الموافقة على الطلب','👍'],disbursed:['صرف السلفة','💰'],accepted:['اعتماد المستلف للسلفة','✅'],rejected:['رفض','⛔'],disputed:['اعتراض المستلف','⚠️'],cancelled:['إلغاء','✖️'],repay_added:['سند استرداد جديد','🧾'],repay_confirmed:['تأكيد استلام مبلغ مسترد','✔️'],repay_rejected:['رفض سند استرداد','⛔'],closed:['سُددت السلفة بالكامل','🎉']};
+const LOGT={created_request:['تقديم طلب سلفة','📝'],created_grant:['تسجيل سلفة','💸'],approved:['الموافقة على الطلب','👍'],disbursed:['صرف السلفة','💰'],accepted:['اعتماد المستلف للسلفة','✅'],rejected:['رفض','⛔'],disputed:['اعتراض المستلف','⚠️'],cancelled:['إلغاء','✖️'],repay_added:['سند استرداد جديد','🧾'],repay_confirmed:['تأكيد استلام مبلغ مسترد','✔️'],repay_rejected:['رفض سند استرداد','⛔'],closed:['سُددت السلفة بالكامل','🎉'],edited:['تعديل السلفة','✏️'],reopened:['إعادة فتح السلفة','↩️']};
 const chip=(s,map=ST)=>{const x=map[s]||{t:s,c:'gray'};return `<span class="chip c-${x.c}">${esc(x.t)}</span>`};
 const ERR={AUTH:'انتهت الجلسة، سجّل الدخول مرة ثانية',LOCKED:'محاولات كثيرة خاطئة، حاول بعد 10 دقائق',BAD_LOGIN:'اسم المستخدم أو الرمز غير صحيح',
   BAD_USERNAME:'اسم المستخدم: حروف عربية أو إنجليزية أو أرقام بدون مسافات (حرفين على الأقل)',BAD_PIN:'الرمز السري من 4 إلى 8 أرقام',SAME_PERSON:'المستلف والمُسلِّف لا يكونان نفس الشخص',
   FORBIDDEN_REQUEST:'تقدر تطلب سلفة باسمك فقط',FORBIDDEN_GRANT:'تقدر تسجّل سلفة دفعتها أنت فقط',NOT_ALLOWED:'ما عندك صلاحية لهذا الإجراء',NOT_FOUND:'العنصر غير موجود',
   NOT_ACTIVE:'السلفة ليست سارية',EXCEEDS:'المبلغ أكبر من المتبقي على السلفة',NAME_TAKEN:'يوجد شخص بنفس الاسم',USERNAME_TAKEN:'اسم المستخدم مستخدم من قبل',
   PIN_REQUIRED:'حدّد رمزاً سرياً لهذا المستخدم',SELF_ADMIN:'ما تقدر تشيل صلاحية المدير أو الدخول عن نفسك',HAS_LOANS:'ما يمكن حذف شخص له سلف مسجلة',
-  BAD_OLD_PIN:'الرمز الحالي غير صحيح',ALREADY_SETUP:'تم إعداد التطبيق مسبقاً، سجّل الدخول',BAD_AMOUNT:'أدخل مبلغاً صحيحاً',NAME_REQUIRED:'اكتب الاسم',NAME_TOO_LONG:'الاسم طويل جداً',NET:'تعذّر الاتصال، تأكد من الإنترنت'};
+  BAD_OLD_PIN:'الرمز الحالي غير صحيح',ALREADY_SETUP:'تم إعداد التطبيق مسبقاً، سجّل الدخول',BAD_AMOUNT:'أدخل مبلغاً صحيحاً',NAME_REQUIRED:'اكتب الاسم',NAME_TOO_LONG:'الاسم طويل جداً',BELOW_PAID:'المبلغ أقل من المسدد فعلاً',NOTE_EMPTY:'اكتب الملاحظة',NET:'تعذّر الاتصال، تأكد من الإنترنت'};
 const normUser=u=>String(u||'').trim().replace(/\s+/g,'').toLowerCase().replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
 const normPin=p=>String(p||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
 const USER_RE=/^[a-z0-9_.ء-ي]{2,30}$/;
@@ -410,7 +433,7 @@ async function rpc(fn,args={}){let r;
 const T=()=>S.token;
 
 /* ========= state ========= */
-const S={view:'boot',token:lsGet('slf_token'),me:null,people:[],loans:[],reps:[],loaded:false,loading:false,
+const S={notes:[],view:'boot',token:lsGet('slf_token'),me:null,people:[],loans:[],reps:[],loaded:false,loading:false,
   tab:'home',lf:'all',rf:'all',q:'',sheet:null,lastSync:0};
 
 async function load(silent){if(!S.token||S.loading)return;S.loading=true;if(!silent)updRefresh();
@@ -419,6 +442,7 @@ async function load(silent){if(!S.token||S.loading)return;S.loading=true;if(!sil
     const logs={};(d.logs||[]).forEach(g=>{(logs[g.loanId]=logs[g.loanId]||[]).push({...g,at:Date.parse(g.at)})});
     S.loans=(d.loans||[]).map(l=>({...l,amount:+l.amount,createdAt:Date.parse(l.createdAt),log:logs[l.id]||[]}));
     S.reps=(d.reps||[]).map(r=>({...r,amount:+r.amount,createdAt:Date.parse(r.createdAt)}));
+    S.notes=(d.notes||[]).map(n=>({...n,at:Date.parse(n.at)}));
     S.loaded=true;S.view='app';S.lastSync=Date.now();S.netErr=false}
   catch(e){if(e.code==='NET'){S.netErr=true;if(!silent)toast(ERR.NET,'err')}else if(e.code!=='AUTH'&&!silent)toast(errMsg(e),'err')}
   finally{S.loading=false;render()}}
@@ -434,6 +458,10 @@ const loan=id=>S.loans.find(l=>l.id===id);
 const rep=id=>S.reps.find(r=>r.id===id);
 const isAdmin=()=>!!S.me?.is_admin;
 function canAct(pid){if(!S.me)return false;if(pid===S.me.id)return true;const p=person(pid);return isAdmin()&&!!p&&!p.has_login}
+const PEND=['pending_lender','approved','pending_borrower'];
+const canEditCore=l=>isAdmin()||(PEND.includes(l.status)&&l.createdBy===S.me?.id);
+const canEditLoan=l=>!['rejected','cancelled'].includes(l.status)&&(canEditCore(l)||(l.status==='active'&&canAct(l.lenderId)));
+const notesOf=l=>S.notes.filter(n=>n.loanId===l.id);
 const repsOf=l=>S.reps.filter(r=>r.loanId===l.id);
 const repaid=l=>repsOf(l).filter(r=>r.status==='confirmed').reduce((a,r)=>a+(+r.amount||0),0);
 const pendingRepSum=l=>repsOf(l).filter(r=>r.status==='pending').reduce((a,r)=>a+(+r.amount||0),0);
@@ -472,8 +500,7 @@ function render(){const root=$('#root');
 function sideHTML(){const t=S.loaded?todo().length:0;const I=k=>NAV.match(new RegExp('data-id="'+k+'"><svg[^]*?</svg>'))[0].replace(/^data-id="\w+">/,'');
   return `<div class="brand"><div class="logo">${IC.logo.replace(/34px/g,'24px')}</div><div><h1 style="font-size:22px">سلفتي</h1><p>إدارة السلف والاستردادات</p></div></div>
   <div class="snav">${[['home','الرئيسية'],['loans','السلف'],['reps','السندات'],['people','الأشخاص']].map(([k,n])=>`<button data-act="tab" data-id="${k}">${I(k)}${n}${k==='home'&&t?`<span class="cnt">${t}</span>`:''}</button>`).join('')}</div>
-  <div class="sh-t">عمليات سريعة</div>
-  <div class="sacts"><button class="btn ghost" data-act="newRequest">${IC.req} طلب سلفة</button><button class="btn ghost" data-act="newGrant">${IC.give} تسجيل سلفة</button><button class="btn ghost" data-act="newRep">${IC.back} سند استرداد</button>${isAdmin()?`<button class="btn ghost" data-act="newPerson">${IC.user} إضافة موظف</button>`:''}</div>
+  <button class="btn newbtn" data-act="fab">${IC.plus} عملية جديدة</button>
   ${S.me?`<button class="me" data-act="account" style="margin-top:auto">${avatar(S.me.name,'sm')}<div><b>${esc(S.me.name)}</b><small>${isAdmin()?'مدير':'موظف'} · حسابي</small></div></button>`:''}`}
 function updRefresh(){const b=$('#refBtn');if(!b)return;b.querySelector('svg').classList.toggle('spin',S.loading);$('#refTxt').textContent=S.loading?'تحديث…':(S.lastSync?ago(S.lastSync):'تحديث')}
 
@@ -497,7 +524,7 @@ function loanCard(l,extra=''){
     <div class="lc-top">${avatar(pname(l.borrowerId))}
       <div class="lc-who"><b>${esc(pname(l.borrowerId))}</b><span>استلف من ${esc(pname(l.lenderId))}</span></div>
       <div class="lc-amt">${money(l.amount)}<small>ر.س</small></div></div>
-    <div class="lc-mid">${chip(l.status)}${isLate(l)?'<span class="tag-late">متأخرة</span>':''}<span class="code">${esc(l.code)}</span></div>
+    <div class="lc-mid">${chip(l.status)}${isLate(l)?'<span class="tag-late">متأخرة</span>':''}${notesOf(l).length?`<span style="font-size:12px;color:var(--mut)">💬 ${notesOf(l).length}</span>`:''}<span class="code">${esc(l.code)}</span></div>
     ${['active','closed'].includes(l.status)?`<div class="bar"><i style="width:${pct}%"></i></div><div class="lc-foot"><span>مسدد ${money(rp)}</span><span>متبقي ${money(remaining(l))}</span></div>`:''}
     ${extra}</div>`}
 function emptyBox(title,sub,btn){return `<div class="empty"><svg viewBox="0 0 120 90" width="120" height="90"><rect x="10" y="20" width="100" height="60" rx="14" fill="#EFEAFF"/><rect x="22" y="34" width="50" height="8" rx="4" fill="#C9BEFF"/><rect x="22" y="50" width="34" height="8" rx="4" fill="#DDD5FF"/><circle cx="88" cy="50" r="14" fill="#FFD7E8"/><path d="M82 50l4 4 8-9" stroke="#EC4899" stroke-width="3" fill="none" stroke-linecap="round"/></svg><h3>${title}</h3><div>${sub}</div>${btn||''}</div>`}
@@ -510,9 +537,9 @@ function vHome(){
   const late=act.filter(isLate).length;
   const t=todo(),m=S.me;
   const inn=act.filter(l=>l.lenderId===m.id).reduce((a,l)=>a+remaining(l),0),ow=act.filter(l=>l.borrowerId===m.id).reduce((a,l)=>a+remaining(l),0);
-  let h=`<div class="home-top"><div class="hero"><div class="hero-l">${isAdmin()?'المتبقي على كل السلف السارية':'المتبقي على سلفك السارية'}</div>
+  let h=`<div class="home-top"><div class="hero"><div class="hero-main"><div class="hero-l">${isAdmin()?'المتبقي على كل السلف السارية':'المتبقي على سلفك السارية'}</div>
     <div class="hero-n">${money(out)}<small>ر.س</small></div>
-    <div class="hero-s">${act.length} سلفة سارية · ${closed} مسددة${late?` · <b style="color:#C81E45">${late} متأخرة</b>`:''}</div>
+    <div class="hero-s">${act.length} سلفة سارية · ${closed} مسددة${late?` · <b style="color:#C81E45">${late} متأخرة</b>`:''}</div></div>
     <div class="mine"><div class="in"><span>لك عند الناس</span><b>${money(inn)}</b> ر.س</div><div class="out"><span>عليك للناس</span><b>${money(ow)}</b> ر.س</div></div></div>
   <div class="quick">
     <button class="qbtn q1" data-act="newRequest"><span class="ic">${IC.req}</span>طلب سلفة</button>
@@ -587,6 +614,7 @@ function renderSheet(){const s=S.sheet;if(!s)return;const el=$('#sheet');const s
     ${isAdmin()?`<button data-act="newPerson"><span class="ic" style="background:linear-gradient(135deg,#EC4899,#F97316)">${IC.user}</span><div><b>إضافة شخص / موظف</b><small>مع اسم مستخدم ورمز دخول</small></div></button>`:''}</div></div>`;
   else if(s.type==='loanForm')h=loanForm(s.kind);
   else if(s.type==='repForm')h=repForm(s.loanId);
+  else if(s.type==='editLoan')h=editLoanForm(s.id);
   else if(s.type==='personForm')h=personForm(s.id);
   else if(s.type==='loan')h=loanSheet(s.id);
   else if(s.type==='voucher')h=voucherSheet(s.kind,s.id);
@@ -594,7 +622,7 @@ function renderSheet(){const s=S.sheet;if(!s)return;const el=$('#sheet');const s
   else if(s.type==='account')h=accountSheet();
   else if(s.type==='share')h=shareSheet(s);
   el.innerHTML=h;el.scrollTop=st;
-  if(['loanForm','repForm','personForm'].includes(s.type))setTimeout(()=>el.querySelector('input:not([readonly]):not([type=date]):not([type=checkbox])')?.focus(),250)}
+  if(['loanForm','repForm','personForm','editLoan'].includes(s.type))setTimeout(()=>el.querySelector('input:not([readonly]):not([type=date]):not([type=checkbox])')?.focus(),250)}
 
 function loanForm(kind){const m=S.me;const isReq=kind==='request';const adm=isAdmin();
   const fixedB=isReq&&!adm,fixedL=!isReq&&!adm;
@@ -606,8 +634,8 @@ function loanForm(kind){const m=S.me;const isReq=kind==='request';const adm=isAd
           :fld('lender','المُسلِّف (من دفع)',lVal,fixedL,'مثال: عبدالرحمن')+fld('borrower','المستلف (من استلم)','',false,'مثال: أحمد')}
    <div class="fld"><label>المبلغ (ر.س)</label><input class="inp amt-inp" name="amount" type="number" inputmode="decimal" min="1" step="any" required placeholder="0">
     <div class="chips-sel">${[500,1000,2000,3000,5000].map(v=>`<button type="button" data-act="amt" data-id="${v}">${money(v)}</button>`).join('')}</div></div>
-   <div class="row2"><div class="fld"><label>التاريخ</label><input class="inp" name="date" type="date" value="${today()}" required></div>
-   <div class="fld"><label>موعد السداد <small>(اختياري)</small></label><input class="inp" name="due" type="date"></div></div>
+   <div class="row2"><div class="fld"><label>التاريخ</label>${dateField('date',today())}</div>
+   <div class="fld"><label>موعد السداد <small>(اختياري)</small></label>${dateField('due','',{optional:true})}</div></div>
    <div class="fld"><label>ملاحظات</label><textarea class="inp" name="notes" placeholder="سبب السلفة، طريقة السداد المتفق عليها…"></textarea></div>
    <div class="hint">اكتب الاسم كما هو مسجّل ليصل للشخص الصحيح. الاسم الجديد يُضاف تلقائياً.</div>
    <button class="btn pri block" type="submit">${isReq?'إرسال الطلب':'تسجيل السلفة'}</button></form>`}
@@ -619,11 +647,39 @@ function repForm(loanId){const act=S.loans.filter(l=>l.status==='active'&&(canAc
    <div class="fld"><label>السلفة</label><select class="inp" name="loanId" id="repLoan">${act.map(x=>`<option value="${x.id}" ${x.id===sel?'selected':''}>${esc(pname(x.borrowerId))} ← ${esc(pname(x.lenderId))} · متبقي ${money(remaining(x))} · ${esc(x.code)}</option>`).join('')}</select></div>
    <div class="fld"><label>المبلغ المُرجَع (ر.س)</label><input class="inp amt-inp" name="amount" id="repAmt" type="number" inputmode="decimal" min="0.01" step="any" required value="${remaining(l)}">
     <div class="chips-sel"><button type="button" data-act="repFull">كامل المتبقي</button><button type="button" data-act="repHalf">النصف</button></div></div>
-   <div class="row2"><div class="fld"><label>التاريخ</label><input class="inp" name="date" type="date" value="${today()}" required></div>
+   <div class="row2"><div class="fld"><label>التاريخ</label>${dateField('date',today())}</div>
    <div class="fld"><label>طريقة السداد</label><select class="inp" name="method"><option>نقداً</option><option>تحويل بنكي</option><option>خصم من الراتب</option><option>STC Pay</option><option>أخرى</option></select></div></div>
    <div class="fld"><label>ملاحظات</label><textarea class="inp" name="notes" placeholder="مثال: دفعة أولى"></textarea></div>
    <div id="repCheck">${repCheckHTML(l)}</div>
    <button class="btn teal block" type="submit">${IC.check} إصدار السند</button></form>`}
+function editLoanForm(id){const l=loan(id);if(!l)return head('تعديل');const core=canEditCore(l);const dis=core?'':'disabled style="background:#F1F0F8"';
+  return head('تعديل السلفة')+`<form class="sh-body" data-form="editLoan" data-id="${l.id}" autocomplete="off">
+   <div class="flow"><b>${esc(pname(l.borrowerId))}</b>${IC.arrow}<b>${esc(pname(l.lenderId))}</b><span class="code">${esc(l.code)}</span></div>
+   <div class="fld"><label>المبلغ (ر.س) ${core?'':'<small>(يعدّله المدير فقط بعد الاعتماد)</small>'}</label><input class="inp amt-inp" name="amount" type="number" inputmode="decimal" min="1" step="any" required value="${l.amount}" ${dis}></div>
+   <div class="row2"><div class="fld"><label>التاريخ</label>${dateField('date',l.date,{disabled:!core})}</div>
+   <div class="fld"><label>موعد السداد</label>${dateField('due',l.due,{optional:true})}</div></div>
+   <div class="fld"><label>ملاحظات السلفة</label><textarea class="inp" name="notes">${esc(l.notes||'')}</textarea></div>
+   <div class="hint">كل تعديل ينحفظ في سجل العمليات مع القيمة القديمة والجديدة.</div>
+   <button class="btn pri block" type="submit">حفظ التعديل</button></form>`}
+function dateField(name,val,{optional=false,disabled=false}={}){return `<input type="hidden" name="${name}" value="${esc(val||'')}"><button type="button" class="inp dpbtn" data-act="dp" data-id="${name}" data-opt="${optional?1:''}" ${disabled?'disabled':''}>${val?esc(fdate(val)):'<span style="color:#A3A1BC;font-weight:500">اختر التاريخ</span>'}</button>`}
+const AR_M=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const AR_D=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+const isoOf=(y,m,d)=>y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+function openDP(name,el){const form=el.closest('form');const v=form.querySelector(`input[name="${name}"]`).value||today();const [y,m]=v.split('-').map(Number);
+  S.dp={form,name,opt:!!el.dataset.opt,btn:el,y,m:m-1};renderDP();$('#dp').classList.add('open')}
+function renderDP(){const d=S.dp;if(!d)return;const cur=d.form.querySelector(`input[name="${d.name}"]`).value;const t=today();
+  const first=new Date(d.y,d.m,1).getDay(),days=new Date(d.y,d.m+1,0).getDate();let cells=AR_D.map(w=>`<div class="wd">${w}</div>`).join('');
+  for(let i=0;i<first;i++)cells+='<div></div>';
+  for(let i=1;i<=days;i++){const iso=isoOf(d.y,d.m,i);const wd=(first+i-1)%7;cells+=`<button type="button" class="${iso===cur?'sel':''} ${iso===t?'td':''} ${wd===5?'fri':''}" data-act="dpPick" data-id="${iso}">${i}</button>`}
+  const ty=new Date().getFullYear();let yrs='';for(let y=ty-3;y<=ty+3;y++)yrs+=`<option value="${y}" ${y===d.y?'selected':''}>${y}</option>`;
+  $('#dpB').innerHTML=`<div class="dp-h"><button type="button" class="nv" data-act="dpNav" data-id="-1" aria-label="الشهر السابق">→</button>
+   <select class="inp" data-dp="m">${AR_M.map((n,i)=>`<option value="${i}" ${i===d.m?'selected':''}>${n}</option>`).join('')}</select>
+   <select class="inp" data-dp="y" style="flex:.7">${yrs}</select>
+   <button type="button" class="nv" data-act="dpNav" data-id="1" aria-label="الشهر التالي">←</button></div>
+   <div class="dp-g">${cells}</div>
+   <div class="dp-sel">${cur?'المختار: '+esc(fdate(cur)):''}</div>
+   <div class="dp-f"><button type="button" class="btn pri" data-act="dpPick" data-id="${t}">اليوم</button>${d.opt?'<button type="button" class="btn rose" data-act="dpPick" data-id="">بدون تاريخ</button>':''}<button type="button" class="btn ghost" data-act="dpClose">إغلاق</button></div>`}
+function closeDP(){S.dp=null;$('#dp').classList.remove('open')}
 function repCheckHTML(l){return canAct(l.lenderId)?`<label class="check"><input type="checkbox" name="received" checked><span>تم استلام المبلغ فعلاً من قِبل <b>${esc(pname(l.lenderId))}</b> (يُؤكَّد السند مباشرة)</span></label>`:`<div class="hint">سيُرسَل السند إلى ${esc(pname(l.lenderId))} لتأكيد الاستلام.</div>`}
 
 function personForm(id){const p=id?person(id):null;const self=p&&p.id===S.me.id;
@@ -676,10 +732,14 @@ function loanSheet(id){const l=loan(id);if(!l)return head('السلفة')+'<div 
    <div class="info"><div><small>تاريخ السلفة</small><b>${fdate(l.date)}</b></div><div><small>موعد السداد</small><b ${isLate(l)?'style="color:#C81E45"':''}>${fdate(l.due)}${isLate(l)?' · متأخرة':''}</b></div>
     <div><small>نوع العملية</small><b>${l.kind==='request'?'طلب من المستلف':'تسجيل من المُسلِّف'}</b></div><div><small>تاريخ الصرف</small><b>${fdate(l.disbursedAt)}</b></div></div>
    ${l.notes?`<div class="notes">📌 ${esc(l.notes)}</div>`:''}
+   ${canEditLoan(l)?`<button class="btn ghost block" style="margin-top:12px" data-act="editLoan" data-id="${l.id}">✏️ تعديل السلفة</button>`:''}
    ${a.length?`<div class="acts">${a.map(([k,t,c])=>`<button class="btn ${c}" data-act="loanOp" data-op="${k}" data-id="${l.id}">${t}</button>`).join('')}</div>`:''}
    ${wait?`<div class="wait">⏳ ${esc(wait)}</div>`:''}
    ${rs.length?`<div class="sec"><h2>سندات الاسترداد</h2></div>${rs.map(r=>`<div class="rrow" data-act="openRep" data-id="${r.id}"><div class="top2"><div><b>${money(r.amount)} ر.س</b> <small>· ${esc(r.method||'')} · ${fdate(r.date)}</small></div>${chip(r.status,RST)}</div>
      ${r.status==='pending'&&L?`<div class="inline-acts"><button class="btn green" data-act="repConfirm" data-id="${r.id}">تأكيد الاستلام</button><button class="btn rose" data-act="repReject" data-id="${r.id}">رفض</button></div>`:''}</div>`).join('')}`:''}
+   <div class="sec"><h2>الملاحظات ${notesOf(l).length?`(${notesOf(l).length})`:''}</h2></div>
+   <div class="panel" style="padding:10px 14px">${notesOf(l).map(n=>`<div class="act-row" style="align-items:flex-start">${avatar(uname(n.by)==='أنت'?S.me.name:pname(n.by),'sm')}<div class="t"><b style="font-size:13px">${esc(uname(n.by)||'—')}</b> <small style="display:inline">· ${ago(n.at)}</small><div style="white-space:pre-wrap;margin-top:3px;font-size:14px">${esc(n.body)}</div></div>${isAdmin()||n.by===S.me.id?`<button class="xbtn" style="margin:0;width:30px;height:30px;font-size:16px" data-act="delNote" data-id="${n.id}" aria-label="حذف">×</button>`:''}</div>`).join('')}
+    <form data-form="note" data-id="${l.id}" style="display:flex;gap:8px;padding:8px 0" autocomplete="off"><textarea class="inp" name="body" required placeholder="اكتب ملاحظة…" style="min-height:46px;height:46px;flex:1"></textarea><button class="btn pri" type="submit" style="padding:0 16px">إضافة</button></form></div>
    <div class="sec"><h2>سجل العمليات</h2></div>
    <div class="tl">${(l.log||[]).slice().reverse().map(e=>{const T=LOGT[e.t]||[e.t,''];return `<div class="tl-i"><b>${T[1]} ${esc(T[0])}${e.amt&&e.t.startsWith('repay')?` · ${money(e.amt)} ر.س`:''}</b><small>${fdate(e.at)} · ${ago(e.at)}${uname(e.by)?' · '+esc(uname(e.by)):''}</small>${e.note?`<p>${esc(e.note)}</p>`:''}</div>`}).join('')}</div>
    <div class="foot-acts">${['active','closed'].includes(l.status)?`<button class="btn ghost" data-act="loanVoucher" data-id="${l.id}">🧾 سند صرف السلفة</button>`:''}
@@ -791,6 +851,13 @@ async function submitAuth(f){const fd=new FormData(f);const setup=f.dataset.form
     if(!r||!r.token)return toast(errMsg({code:r&&r.error}),'err');
     S.token=r.token;lsSet('slf_token',r.token);lsSet('slf_user',u);S.view='app';S.tab='home';await load()}
   catch(e){toast(errMsg(e),'err');if(e.code==='ALREADY_SETUP')await toLogin()}}
+async function submitEditLoan(f){const fd=new FormData(f);const l=loan(f.dataset.id);if(!l)return;const core=canEditCore(l);
+  const amt=core?+fd.get('amount'):l.amount;if(!(amt>0))return toast(ERR.BAD_AMOUNT,'err');
+  if(amt<repaid(l)-0.001)return toast(ERR.BELOW_PAID,'err');
+  const ok=await act('slf_edit_loan',{p_loan:l.id,p_amount:amt,p_date:core?(fd.get('date')||l.date):l.date,p_due:fd.get('due')||null,p_notes:String(fd.get('notes')||'').trim()},'تم حفظ التعديل');
+  if(ok)openSheet({type:'loan',id:l.id})}
+async function submitNote(f){const b=String(new FormData(f).get('body')||'').trim();if(!b)return;
+  if(await act('slf_add_note',{p_loan:f.dataset.id,p_body:b},'أُضيفت الملاحظة'))f.reset()}
 async function submitPin(f){const fd=new FormData(f);const nw=normPin(fd.get('new'));if(!/^[0-9]{4,8}$/.test(nw))return toast(ERR.BAD_PIN,'err');
   if(await act('slf_change_pin',{p_old:String(fd.get('old')||''),p_new:nw},'تم تغيير الرمز'))f.reset()}
 
@@ -818,6 +885,12 @@ const H={
   amt:(v,el)=>{const i=el.closest('form').querySelector('[name=amount]');i.value=v;el.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el))},
   repFull:()=>{const l=loan($('#repLoan').value);$('#repAmt').value=remaining(l)},
   repHalf:()=>{const l=loan($('#repLoan').value);$('#repAmt').value=Math.round(remaining(l)/2*100)/100},
+  editLoan:id=>openSheet({type:'editLoan',id}),
+  dp:(name,el)=>openDP(name,el),
+  dpNav:dir=>{const d=S.dp;d.m+=+dir;if(d.m<0){d.m=11;d.y--}if(d.m>11){d.m=0;d.y++}renderDP()},
+  dpPick:iso=>{const d=S.dp;if(!d)return;d.form.querySelector(`input[name="${d.name}"]`).value=iso||'';d.btn.innerHTML=iso?esc(fdate(iso)):'<span style="color:#A3A1BC;font-weight:500">اختر التاريخ</span>';closeDP()},
+  dpClose:()=>closeDP(),
+  delNote:id=>once('n'+id,async()=>{if(!await ask({title:'حذف الملاحظة',msg:'تبي تحذف هذي الملاحظة؟',ok:'حذف',danger:true}))return;await act('slf_delete_note',{p_note:id},'حُذفت الملاحظة')}),
   delPerson:id=>once('p'+id,async()=>{if(!await ask({title:'حذف الشخص',msg:`حذف ${pname(id)} نهائياً؟`,ok:'حذف',danger:true}))return;if(await act('slf_delete_person',{p_id:id},'تم الحذف'))closeSheet()}),
   delLoan:id=>once('l'+id,async()=>{if(!await ask({title:'حذف السلفة',msg:'ستُحذف السلفة وكل سنداتها وسجلها نهائياً.',ok:'حذف نهائي',danger:true}))return;
     if(await act('slf_loan_op',{p_loan:id,p_op:'delete',p_note:''},'تم الحذف'))closeSheet()}),
@@ -830,14 +903,14 @@ const H={
   dlgNo:()=>dlgClose(false)
 };
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');
-  if(!t){if(e.target.id==='sheetWrap')closeSheet();if(e.target.id==='dlg')dlgClose(false);return}
+  if(!t){if(e.target.id==='sheetWrap')closeSheet();if(e.target.id==='dlg')dlgClose(false);if(e.target.id==='dp')closeDP();return}
   const f=H[t.dataset.act];if(f){e.stopPropagation();f(t.dataset.id,t,e)}});
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;
-  const run={loan:submitLoan,rep:submitRep,person:submitPerson,login:submitAuth,setup:submitAuth,pin:submitPin}[f.dataset.form];
+  const run={loan:submitLoan,rep:submitRep,person:submitPerson,login:submitAuth,setup:submitAuth,pin:submitPin,editLoan:submitEditLoan,note:submitNote}[f.dataset.form];
   if(run){const b=f.querySelector('button[type=submit],button:not([type])');if(b)b.disabled=true;Promise.resolve(run(f)).finally(()=>{if(b)b.disabled=false})}});
 document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;$('#loanList').innerHTML=loansListHTML()}});
-document.addEventListener('change',e=>{if(e.target.id==='repLoan'){const l=loan(e.target.value);$('#repAmt').value=remaining(l);$('#repCheck').innerHTML=repCheckHTML(l)}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#dlg').classList.contains('open'))dlgClose(false);else closeSheet()}});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.dp&&S.dp){S.dp[e.target.dataset.dp]=+e.target.value;renderDP();return}if(e.target.id==='repLoan'){const l=loan(e.target.value);$('#repAmt').value=remaining(l);$('#repCheck').innerHTML=repCheckHTML(l)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(S.dp)closeDP();else if($('#dlg').classList.contains('open'))dlgClose(false);else closeSheet()}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.view==='app')load(true)});
 setInterval(()=>{if(S.view==='app'&&!document.hidden)load(true)},20000);
 setInterval(()=>{if(S.view==='app')updRefresh()},30000);

@@ -343,11 +343,14 @@ const RST={pending:{t:'بانتظار تأكيد الاستلام',c:'amber'},co
 const LOGT={created_request:['تقديم طلب سلفة','📝'],created_grant:['تسجيل سلفة','💸'],approved:['الموافقة على الطلب','👍'],disbursed:['صرف السلفة','💰'],accepted:['اعتماد المستلف للسلفة','✅'],rejected:['رفض','⛔'],disputed:['اعتراض المستلف','⚠️'],cancelled:['إلغاء','✖️'],repay_added:['سند استرداد جديد','🧾'],repay_confirmed:['تأكيد استلام مبلغ مسترد','✔️'],repay_rejected:['رفض سند استرداد','⛔'],closed:['سُددت السلفة بالكامل','🎉']};
 const chip=(s,map=ST)=>{const x=map[s]||{t:s,c:'gray'};return `<span class="chip c-${x.c}">${esc(x.t)}</span>`};
 const ERR={AUTH:'انتهت الجلسة، سجّل الدخول مرة ثانية',LOCKED:'محاولات كثيرة خاطئة، حاول بعد 10 دقائق',BAD_LOGIN:'اسم المستخدم أو الرمز غير صحيح',
-  BAD_USERNAME:'اسم المستخدم: حروف إنجليزية صغيرة أو أرقام، 3 أحرف على الأقل',BAD_PIN:'الرمز السري من 4 إلى 8 أرقام',SAME_PERSON:'المستلف والمُسلِّف لا يكونان نفس الشخص',
+  BAD_USERNAME:'اسم المستخدم: حروف عربية أو إنجليزية أو أرقام بدون مسافات (حرفين على الأقل)',BAD_PIN:'الرمز السري من 4 إلى 8 أرقام',SAME_PERSON:'المستلف والمُسلِّف لا يكونان نفس الشخص',
   FORBIDDEN_REQUEST:'تقدر تطلب سلفة باسمك فقط',FORBIDDEN_GRANT:'تقدر تسجّل سلفة دفعتها أنت فقط',NOT_ALLOWED:'ما عندك صلاحية لهذا الإجراء',NOT_FOUND:'العنصر غير موجود',
   NOT_ACTIVE:'السلفة ليست سارية',EXCEEDS:'المبلغ أكبر من المتبقي على السلفة',NAME_TAKEN:'يوجد شخص بنفس الاسم',USERNAME_TAKEN:'اسم المستخدم مستخدم من قبل',
   PIN_REQUIRED:'حدّد رمزاً سرياً لهذا المستخدم',SELF_ADMIN:'ما تقدر تشيل صلاحية المدير أو الدخول عن نفسك',HAS_LOANS:'ما يمكن حذف شخص له سلف مسجلة',
   BAD_OLD_PIN:'الرمز الحالي غير صحيح',ALREADY_SETUP:'تم إعداد التطبيق مسبقاً، سجّل الدخول',BAD_AMOUNT:'أدخل مبلغاً صحيحاً',NAME_REQUIRED:'اكتب الاسم',NAME_TOO_LONG:'الاسم طويل جداً',NET:'تعذّر الاتصال، تأكد من الإنترنت'};
+const normUser=u=>String(u||'').trim().replace(/\s+/g,'').toLowerCase().replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+const normPin=p=>String(p||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+const USER_RE=/^[a-z0-9_.ء-ي]{2,30}$/;
 const errMsg=e=>ERR[e&&e.code]||ERR[e&&e.message]||'حدث خطأ، حاول مرة أخرى';
 
 /* ========= API ========= */
@@ -423,10 +426,10 @@ function authView(){const setup=S.view==='setup';
    <div class="auth-logo">${IC.logo}</div><h2>سلفتي</h2>
    <div class="sub">${setup?'أول مرة؟ أنشئ حساب المدير لإدارة السلف والموظفين':'سجّل دخولك لمتابعة سلفك'}</div>
    ${setup?`<div class="fld"><label>اسمك</label><input class="inp" name="name" required placeholder="مثال: عبدالرحمن" autocomplete="name"></div>`:''}
-   <div class="fld"><label>اسم المستخدم</label><input class="inp ltr" name="username" required autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="username" autocomplete="username" value="${esc(lsGet('slf_user')||'')}"></div>
-   <div class="fld"><label>الرمز السري</label><input class="inp pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" required placeholder="••••" autocomplete="${setup?'new-password':'current-password'}"></div>
-   ${setup?`<div class="fld"><label>تأكيد الرمز</label><input class="inp pin" name="pin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" required placeholder="••••" autocomplete="new-password"></div>
-   <div class="hint">اسم المستخدم بالإنجليزي (حروف صغيرة وأرقام). الرمز من 4 إلى 8 أرقام.</div>`:''}
+   <div class="fld"><label>اسم المستخدم</label><input class="inp" dir="auto" name="username" required autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="مثال: ابوقصي" autocomplete="username" value="${esc(lsGet('slf_user')||'')}"></div>
+   <div class="fld"><label>الرمز السري</label><input class="inp pin" name="pin" type="password" inputmode="numeric" maxlength="8" required placeholder="••••" autocomplete="${setup?'new-password':'current-password'}"></div>
+   ${setup?`<div class="fld"><label>تأكيد الرمز</label><input class="inp pin" name="pin2" type="password" inputmode="numeric" maxlength="8" required placeholder="••••" autocomplete="new-password"></div>
+   <div class="hint">اسم المستخدم بالعربي أو الإنجليزي بدون مسافات. الرمز من 4 إلى 8 أرقام.</div>`:''}
    <button class="btn pri block" type="submit">${setup?'إنشاء حساب المدير':'دخول'}</button>
    ${setup?'':'<div class="hint" style="text-align:center;margin:14px 0 0">ما عندك حساب؟ اطلبه من مدير التطبيق.</div>'}
   </form></div>`}
@@ -570,8 +573,8 @@ function personForm(id){const p=id?person(id):null;const self=p&&p.id===S.me.id;
    <div class="fld"><label>ملاحظات</label><textarea class="inp" name="notes">${esc(p?.notes||'')}</textarea></div>
    <div class="sect-t">حساب الدخول</div>
    <div class="hint" style="margin-top:0">${self?'هذا حسابك.':'اتركه فارغاً لو الشخص ما يحتاج يدخل التطبيق (تعتمد عنه أنت).'}</div>
-   <div class="row2"><div class="fld"><label>اسم المستخدم</label><input class="inp ltr" name="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(p?.username||'')}" placeholder="ahmed" ${self?'required':''}></div>
-   <div class="fld"><label>الرمز السري</label><input class="inp pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="${p?.has_login?'بدون تغيير':'4-8 أرقام'}" autocomplete="new-password"></div></div>
+   <div class="row2"><div class="fld"><label>اسم المستخدم</label><input class="inp" dir="auto" name="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(p?.username||'')}" placeholder="مثال: احمد" ${self?'required':''}></div>
+   <div class="fld"><label>الرمز السري</label><input class="inp pin" name="pin" type="password" inputmode="numeric" maxlength="8" placeholder="${p?.has_login?'بدون تغيير':'4-8 أرقام'}" autocomplete="new-password"></div></div>
    <label class="check" style="background:#FFF4DE;color:#8A5A00"><input type="checkbox" name="is_admin" ${p?.is_admin?'checked':''} ${self?'checked disabled':''}><span>صلاحية مدير: يشوف كل السلف ويدير الأشخاص</span></label>
    <button class="btn pri block" type="submit">حفظ</button></form>`}
 
@@ -583,7 +586,7 @@ function shareSheet(s){const t=`أهلاً ${s.name}،\nهذا رابط تطبي
 
 function accountSheet(){const m=S.me;
   return head('حسابي')+`<div class="sh-body">
-   <div style="display:flex;align-items:center;gap:14px">${avatar(m.name,'lg')}<div><b style="font-size:20px">${esc(m.name)}</b>${m.is_admin?'<span class="role adm">مدير</span>':''}<div class="ltr" style="color:var(--mut);text-align:right">@${esc(m.username||'')}</div></div></div>
+   <div style="display:flex;align-items:center;gap:14px">${avatar(m.name,'lg')}<div><b style="font-size:20px">${esc(m.name)}</b>${m.is_admin?'<span class="role adm">مدير</span>':''}<div style="color:var(--mut)">اسم المستخدم: ${esc(m.username||'')}</div></div></div>
    <form data-form="pin" style="margin-top:18px" autocomplete="off"><div class="sect-t">تغيير الرمز السري</div>
    <div class="row2"><div class="fld"><label>الرمز الحالي</label><input class="inp pin" name="old" type="password" inputmode="numeric" maxlength="8" required autocomplete="current-password"></div>
    <div class="fld"><label>الرمز الجديد</label><input class="inp pin" name="new" type="password" inputmode="numeric" maxlength="8" required autocomplete="new-password"></div></div>
@@ -711,8 +714,8 @@ async function submitRep(f){const fd=new FormData(f);const l=loan(fd.get('loanId
     closing?'سُددت السلفة بالكامل 🎉':conf?'تم إصدار السند وتأكيده':`أُرسل السند إلى ${pname(l.lenderId)} للتأكيد`);
   if(ok){closeSheet();S.tab='reps';render()}}
 async function submitPerson(f){const fd=new FormData(f);const id=f.dataset.id||null;const p=id?person(id):null;
-  const name=String(fd.get('name')||'').trim(),username=String(fd.get('username')||'').trim().toLowerCase(),pin=String(fd.get('pin')||'').trim();
-  if(username&&!/^[a-z0-9_.]{3,30}$/.test(username))return toast(ERR.BAD_USERNAME,'err');
+  const name=String(fd.get('name')||'').trim(),username=normUser(fd.get('username')),pin=normPin(fd.get('pin'));
+  if(username&&!USER_RE.test(username))return toast(ERR.BAD_USERNAME,'err');
   if(pin&&!/^[0-9]{4,8}$/.test(pin))return toast(ERR.BAD_PIN,'err');
   if(username&&!pin&&!p?.has_login)return toast(ERR.PIN_REQUIRED,'err');
   const isAdm=(p&&p.id===S.me.id)?true:!!fd.get('is_admin');
@@ -721,14 +724,14 @@ async function submitPerson(f){const fd=new FormData(f);const id=f.dataset.id||n
   if(username&&pin)openSheet({type:'share',name,username,pin});
   else if(id)openSheet({type:'person',id});else{closeSheet();S.tab='people';render()}}
 async function submitAuth(f){const fd=new FormData(f);const setup=f.dataset.form==='setup';
-  const u=String(fd.get('username')||'').trim().toLowerCase(),pin=String(fd.get('pin')||'').trim();
-  if(!/^[a-z0-9_.]{3,30}$/.test(u))return toast(ERR.BAD_USERNAME,'err');if(!/^[0-9]{4,8}$/.test(pin))return toast(ERR.BAD_PIN,'err');
-  if(setup&&pin!==String(fd.get('pin2')||''))return toast('الرمزان غير متطابقين','err');
+  const u=normUser(fd.get('username')),pin=normPin(fd.get('pin'));
+  if(!USER_RE.test(u))return toast(ERR.BAD_USERNAME,'err');if(!/^[0-9]{4,8}$/.test(pin))return toast(ERR.BAD_PIN,'err');
+  if(setup&&pin!==normPin(fd.get('pin2')))return toast('الرمزان غير متطابقين','err');
   try{const r=setup?await rpc('slf_setup',{p_name:String(fd.get('name')||'').trim(),p_username:u,p_pin:pin}):await rpc('slf_login',{p_username:u,p_pin:pin});
     if(!r||!r.token)return toast(errMsg({code:r&&r.error}),'err');
     S.token=r.token;lsSet('slf_token',r.token);lsSet('slf_user',u);S.view='app';S.tab='home';await load()}
   catch(e){toast(errMsg(e),'err');if(e.code==='ALREADY_SETUP'){S.view='login';render()}}}
-async function submitPin(f){const fd=new FormData(f);const nw=String(fd.get('new')||'');if(!/^[0-9]{4,8}$/.test(nw))return toast(ERR.BAD_PIN,'err');
+async function submitPin(f){const fd=new FormData(f);const nw=normPin(fd.get('new'));if(!/^[0-9]{4,8}$/.test(nw))return toast(ERR.BAD_PIN,'err');
   if(await act('slf_change_pin',{p_old:String(fd.get('old')||''),p_new:nw},'تم تغيير الرمز'))f.reset()}
 
 /* ========= events ========= */
